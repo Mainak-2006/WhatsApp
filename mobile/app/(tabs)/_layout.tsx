@@ -1,40 +1,99 @@
 import React from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Tabs } from 'expo-router';
-import useColourScheme from '@/components/useColourScheme';
-
-
-
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
-}
+import { View, Text, TouchableOpacity, DeviceEventEmitter } from 'react-native';
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
+import { MaterialTopTabs } from '../../components/MaterialTopTabs';
+import DropDownMenu from '../../components/DropDownMenu';
+import ReadAll from '../../components/ReadAll';
+import { useThemeColors } from '../../hooks/useThemeColors';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
-  const { colors } = useColourScheme();
+  const colors = useThemeColors();
+  const insets = useSafeAreaInsets();
+  const [menuVisible, setMenuVisible] = React.useState(false);
+  const [readAllVisible, setReadAllVisible] = React.useState(false);
+
+  const handleReadAll = () => {
+    setMenuVisible(false);
+    setReadAllVisible(true);
+  };
+
+  const confirmReadAll = () => {
+    DeviceEventEmitter.emit('readAll');
+    setReadAllVisible(false);
+  };
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: colors.tint,
-        headerShown: false,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Chat',
-          tabBarIcon: ({ color }) => <TabBarIcon name="comments" color={color} />,
-        }}
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      {/* WhatsApp Header */}
+      <View style={{ paddingTop: insets.top, backgroundColor: colors.background }} className="px-4 py-5 mt-4 flex-row justify-between items-center">
+        <Text style={{ color: colors.text }} className="text-2xl font-bold">WhatsApp</Text>
+        <View className="flex-row items-center gap-5">
+          <TouchableOpacity activeOpacity={0.7}>
+            <MaterialIcons name="photo-camera" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={0.7}>
+            <Ionicons name="search" size={24} color={colors.text} />
+          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={0.7} onPress={() => setMenuVisible(true)}>
+            <MaterialIcons name="more-vert" size={24} color={colors.text} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <DropDownMenu
+        visible={menuVisible}
+        onClose={() => setMenuVisible(false)}
+        onReadAll={handleReadAll}
       />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
-        }}
+
+      <ReadAll
+        visible={readAllVisible}
+        onClose={() => setReadAllVisible(false)}
+        onConfirm={confirmReadAll}
       />
-    </Tabs>
+
+      <MaterialTopTabs
+        screenOptions={{
+          tabBarActiveTintColor: colors.primary,
+          tabBarInactiveTintColor: colors.secondaryText,
+          tabBarIndicatorStyle: {
+            backgroundColor: colors.primary,
+            height: 3,
+          },
+          tabBarStyle: {
+            backgroundColor: colors.background,
+            elevation: 0,
+            shadowOpacity: 0,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+          },
+          tabBarLabelStyle: {
+            fontSize: 14,
+            fontWeight: 'bold',
+            textTransform: 'none',
+          },
+        }}>
+        <MaterialTopTabs.Screen
+          name="index"
+          options={{
+            title: 'Chats',
+          }}
+        />
+        <MaterialTopTabs.Screen
+          name="group"
+          options={{
+            title: 'Group',
+          }}
+        />
+        <MaterialTopTabs.Screen
+          name="update"
+          options={{
+            title: 'Update',
+          }}
+        />
+      </MaterialTopTabs>
+    </View>
   );
 }
+
