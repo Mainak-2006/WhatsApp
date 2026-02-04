@@ -38,46 +38,53 @@ export default function SignIn() {
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={[styles.container, { backgroundColor: colors.background }]}
+            className="flex-1"
+            style={{ backgroundColor: colors.background }}
         >
-            <View style={styles.content}>
-                <View style={styles.header}>
-                    <View style={[styles.logoContainer, { backgroundColor: '#25D366' }]}>
+            <View className="flex-1 p-6 justify-center">
+                <View className="items-center mb-10">
+                    <View
+                        className="w-20 h-20 rounded-2xl justify-center items-center mb-5 elevation-8"
+                        style={{ backgroundColor: '#25D366', shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10 }}
+                    >
                         <Ionicons name="chatbubbles" size={40} color="white" />
                     </View>
-                    <Text style={[styles.title, { color: colors.text }]}>Welcome Back</Text>
-                    <Text style={[styles.subtitle, { color: colors.secondaryText }]}>
+                    <Text className="text-3xl font-bold mb-2" style={{ color: colors.text }}>Welcome Back</Text>
+                    <Text className="text-base text-center" style={{ color: colors.secondaryText }}>
                         Sign in to continue your conversations
                     </Text>
                 </View>
 
-                <View style={styles.form}>
-                    <View style={styles.inputContainer}>
-                        <Text style={[styles.label, { color: colors.secondaryText }]}>Email Address</Text>
-                        <View style={[styles.inputWrapper, { borderColor: colors.border }]}>
-                            <Ionicons name="mail-outline" size={20} color={colors.secondaryText} style={styles.inputIcon} />
+                <View className="gap-5">
+                    <View className="gap-2">
+                        <Text className="text-sm font-semibold ml-1" style={{ color: colors.secondaryText }}>Email Address</Text>
+                        <View className="flex-row items-center border rounded-xl px-4 h-14" style={{ borderColor: colors.border }}>
+                            <Ionicons name="mail-outline" size={20} color={colors.secondaryText} className="mr-3" />
                             <TextInput
                                 autoCapitalize="none"
                                 value={emailAddress}
                                 placeholder="email@example.com"
                                 placeholderTextColor={colors.secondaryText}
                                 onChangeText={(emailAddress) => setEmailAddress(emailAddress)}
-                                style={[styles.input, { color: colors.text }]}
+                                className="flex-1 text-base"
+                                style={{ color: colors.text }}
+                                keyboardType="email-address"
                             />
                         </View>
                     </View>
 
-                    <View style={styles.inputContainer}>
-                        <Text style={[styles.label, { color: colors.secondaryText }]}>Password</Text>
-                        <View style={[styles.inputWrapper, { borderColor: colors.border }]}>
-                            <Ionicons name="lock-closed-outline" size={20} color={colors.secondaryText} style={styles.inputIcon} />
+                    <View className="gap-2">
+                        <Text className="text-sm font-semibold ml-1" style={{ color: colors.secondaryText }}>Password</Text>
+                        <View className="flex-row items-center border rounded-xl px-4 h-14" style={{ borderColor: colors.border }}>
+                            <Ionicons name="lock-closed-outline" size={20} color={colors.secondaryText} className="mr-3" />
                             <TextInput
                                 value={password}
                                 placeholder="Your password"
                                 placeholderTextColor={colors.secondaryText}
                                 secureTextEntry={!showPassword}
                                 onChangeText={(password) => setPassword(password)}
-                                style={[styles.input, { color: colors.text }]}
+                                className="flex-1 text-base"
+                                style={{ color: colors.text }}
                             />
                             <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                                 <Ionicons
@@ -90,28 +97,29 @@ export default function SignIn() {
                     </View>
 
                     <Link href={"/forgot-password" as any} asChild>
-                        <TouchableOpacity style={styles.forgotPassword}>
-                            <Text style={[styles.forgotPasswordText, { color: '#25D366' }]}>Forgot password?</Text>
+                        <TouchableOpacity className="self-end">
+                            <Text className="text-sm font-semibold" style={{ color: '#25D366' }}>Forgot password?</Text>
                         </TouchableOpacity>
                     </Link>
 
                     <TouchableOpacity
-                        style={[styles.button, { backgroundColor: '#25D366' }]}
+                        className="h-14 rounded-xl justify-center items-center mt-2 elevation-5"
+                        style={{ backgroundColor: '#25D366', shadowColor: "#25D366", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 }}
                         onPress={onSignInPress}
                         disabled={loading}
                     >
                         {loading ? (
                             <ActivityIndicator color="white" />
                         ) : (
-                            <Text style={styles.buttonText}>Sign In</Text>
+                            <Text className="text-white text-lg font-bold">Sign In</Text>
                         )}
                     </TouchableOpacity>
 
-                    <View style={styles.footer}>
-                        <Text style={[styles.footerText, { color: colors.secondaryText }]}>Don't have an account? </Text>
+                    <View className="flex-row justify-center mt-5">
+                        <Text className="text-sm" style={{ color: colors.secondaryText }}>Don't have an account? </Text>
                         <Link href={"/(auth)/sign-up" as any} asChild>
                             <TouchableOpacity>
-                                <Text style={[styles.linkText, { color: '#25D366' }]}>Sign Up</Text>
+                                <Text className="text-sm font-bold" style={{ color: '#25D366' }}>Sign Up</Text>
                             </TouchableOpacity>
                         </Link>
                     </View>
@@ -120,108 +128,3 @@ export default function SignIn() {
         </KeyboardAvoidingView>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    content: {
-        flex: 1,
-        padding: 24,
-        justifyContent: 'center',
-    },
-    header: {
-        alignItems: 'center',
-        marginBottom: 40,
-    },
-    logoContainer: {
-        width: 80,
-        height: 80,
-        borderRadius: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 20,
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 4,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 8,
-    },
-    title: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        marginBottom: 8,
-    },
-    subtitle: {
-        fontSize: 16,
-        textAlign: 'center',
-    },
-    form: {
-        gap: 20,
-    },
-    inputContainer: {
-        gap: 8,
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: '600',
-        marginLeft: 4,
-    },
-    inputWrapper: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        height: 56,
-    },
-    inputIcon: {
-        marginRight: 12,
-    },
-    input: {
-        flex: 1,
-        fontSize: 16,
-    },
-    forgotPassword: {
-        alignSelf: 'flex-end',
-    },
-    forgotPasswordText: {
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    button: {
-        height: 56,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 10,
-        shadowColor: "#25D366",
-        shadowOffset: {
-            width: 0,
-            height: 4,
-        },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 5,
-    },
-    buttonText: {
-        color: 'white',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    footer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        marginTop: 20,
-    },
-    footerText: {
-        fontSize: 14,
-    },
-    linkText: {
-        fontSize: 14,
-        fontWeight: 'bold',
-    },
-});

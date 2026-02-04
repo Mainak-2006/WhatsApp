@@ -1,4 +1,5 @@
 import { View, Text, FlatList, Image, TouchableOpacity, DeviceEventEmitter } from 'react-native'
+import { MaterialIcons } from '@expo/vector-icons'
 import React, { useState } from 'react'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { chat } from '../../data/DemoChat'
@@ -58,7 +59,7 @@ const index = () => {
 
             <TouchableOpacity
               className='ml-3 flex-1'
-              onPress={() => {/* Navigate to chat room */ }}
+              onPress={() => router.push(`/chat/${item.id}`)}
             >
               <View className='flex-row justify-between items-center'>
                 <Text style={{ color: colors.text }} className='font-bold text-lg'>{item.name}</Text>
@@ -88,6 +89,13 @@ const index = () => {
           </View>
         )}
       />
+      <TouchableOpacity
+        className='absolute bottom-6 right-6 w-14 h-14 rounded-full justify-center items-center shadow-lg'
+        style={{ backgroundColor: '#00A884', elevation: 5 }}
+        onPress={() => router.push('/select-contact' as any)}
+      >
+        <MaterialIcons name="message" size={24} color="white" />
+      </TouchableOpacity>
     </View>
   )
 }

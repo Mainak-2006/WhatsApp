@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, Image, TouchableOpacity, Alert, DeviceEventEmitter } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { chat } from '../data/DemoChat';
+import { chat, blockedIds } from '../data/DemoChat';
 
 export default function BlockedContactsScreen() {
     const colors = useThemeColors();
@@ -12,9 +12,23 @@ export default function BlockedContactsScreen() {
     // For this demo, we'll use a simulated state that listens to the block events
     const [blockedContacts, setBlockedContacts] = useState<any[]>([]);
 
+    // Refresh blocked contacts when screen comes into focus
+    useFocusEffect(
+        React.useCallback(() => {
+            const currentBlockedContacts = chat.filter(c =>
+                blockedIds.includes(c.id.toString()) || blockedIds.includes(c.id)
+            );
+            setBlockedContacts(currentBlockedContacts);
+        }, [])
+    );
+
     useEffect(() => {
-        // Mock initial state - usually some would be blocked if we had persistence
-        // For now let's just use the event emitter to keep it in sync while the app is running
+        // Initialize blocked contacts from blockedIds array
+        const initialBlockedContacts = chat.filter(c =>
+            blockedIds.includes(c.id.toString()) || blockedIds.includes(c.id)
+        );
+        setBlockedContacts(initialBlockedContacts);
+
         const blockSub = DeviceEventEmitter.addListener('userBlocked', (id) => {
             const user = chat.find(c => c.id === id);
             if (user && !blockedContacts.find(bc => bc.id === id)) {
@@ -30,7 +44,7 @@ export default function BlockedContactsScreen() {
             blockSub.remove();
             unblockSub.remove();
         };
-    }, [blockedContacts]);
+    }, []);
 
     const handleUnblock = (user: any) => {
         Alert.alert(
@@ -41,6 +55,12 @@ export default function BlockedContactsScreen() {
                 {
                     text: 'Unblock',
                     onPress: () => {
+                        // Remove from blockedIds array
+                        const userId = user.id.toString();
+                        const index = blockedIds.findIndex(bid => bid === userId || bid === user.id);
+                        if (index > -1) {
+                            blockedIds.splice(index, 1);
+                        }
                         DeviceEventEmitter.emit('userUnblocked', user.id);
                         Alert.alert('Unblocked', `${user.name} has been unblocked.`);
                     }
@@ -50,7 +70,7 @@ export default function BlockedContactsScreen() {
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: colors.background }}>
+        <View style={{ flex: 1, paddingTop: 60, backgroundColor: colors.background }}>
             <Stack.Screen
                 options={{
                     headerTitle: 'Blocked contacts',
@@ -110,10 +130,9 @@ export default function BlockedContactsScreen() {
             )}
 
             <TouchableOpacity
-                className="flex-row items-center px-4 py-4"
+                className="flex-row items-center px-4 py-6 mb-4 mx-2"
                 onPress={() => {
-                    // In a real app, show contact picker
-                    Alert.alert('Feature incoming', 'Contact picker to block new people will be available in the next version.');
+                    router.push('/select-contact?mode=block' as any);
                 }}
             >
                 <View className="w-10 h-10 rounded-full items-center justify-center bg-[#00A884]">

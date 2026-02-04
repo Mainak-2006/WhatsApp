@@ -5,6 +5,7 @@ export interface ColorScheme {
     border: string;
     tabBarBackground: string;
     primary: string;
+    chatBackground: string;
 }
 
 export interface ColorsType {

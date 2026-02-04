@@ -141,7 +141,7 @@ const Settings = () => {
             icon={item.icon}
             onPress={() => {
               if (item.title === 'Privacy') {
-                router.push('/(tabs)/privacy' as any);
+                router.push('/privacy' as any);
               } else {
                 Alert.alert('Feature incoming', `${item.title} settings will be available soon.`);
               }

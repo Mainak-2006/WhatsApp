@@ -18,17 +18,8 @@ export default function OAuthCallback() {
     }, [isLoaded, isSignedIn]);
 
     return (
-        <View style={styles.container}>
+        <View className="flex-1 justify-center items-center bg-white">
             <ActivityIndicator size="large" color="#25D366" />
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-    },
-});

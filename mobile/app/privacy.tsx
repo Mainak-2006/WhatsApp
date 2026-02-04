@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, DeviceEventEmitter } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useThemeColors } from '../hooks/useThemeColors';
+import { blockedIds } from '../data/DemoChat';
 
 const PrivacyItem = ({ title, value, description, onPress, icon }: any) => {
     const colors = useThemeColors();
@@ -12,7 +13,7 @@ const PrivacyItem = ({ title, value, description, onPress, icon }: any) => {
             style={{ borderBottomColor: colors.border }}
             onPress={onPress}
         >
-            <View className="flex-row items-center justify-between">
+            <View className="flex-row  items-center justify-between">
                 <View className="flex-1 mr-4">
                     <Text style={{ color: colors.text }} className="text-[17px] font-normal">{title}</Text>
                     {description ? (
@@ -30,9 +31,32 @@ const PrivacyItem = ({ title, value, description, onPress, icon }: any) => {
 export default function PrivacyScreen() {
     const colors = useThemeColors();
     const router = useRouter();
+    const [lockEnabled, setLockEnabled] = React.useState(false);
+    const [blockedCount, setBlockedCount] = React.useState(blockedIds.length);
+
+    React.useEffect(() => {
+        const checkLockStatus = async () => {
+            const settings = await import('../utils/lock-utils').then(m => m.getAppLockSettings());
+            setLockEnabled(settings.isEnabled);
+        };
+        checkLockStatus();
+
+        // Listen for block/unblock events
+        const blockSub = DeviceEventEmitter.addListener('userBlocked', () => {
+            setBlockedCount(blockedIds.length);
+        });
+        const unblockSub = DeviceEventEmitter.addListener('userUnblocked', () => {
+            setBlockedCount(blockedIds.length);
+        });
+
+        return () => {
+            blockSub.remove();
+            unblockSub.remove();
+        };
+    }, []);
 
     return (
-        <View style={{ flex: 1, backgroundColor: colors.background }}>
+        <View style={{ flex: 1, paddingTop: 50, backgroundColor: colors.background }}>
             <Stack.Screen
                 options={{
                     headerTitle: 'Privacy',
@@ -84,10 +108,15 @@ export default function PrivacyScreen() {
 
                 <PrivacyItem
                     title="Blocked contacts"
-                    value="None"
+                    value={blockedCount > 0 ? `${blockedCount}` : "None"}
                     onPress={() => router.push('/blocked-contacts' as any)}
                 />
-                <PrivacyItem title="Fingerprint lock" value="Disabled" />
+                <PrivacyItem
+                    title="App lock"
+                    value={lockEnabled ? "Enabled" : "Disabled"}
+                    description="Unlock with biometric or PIN"
+                    onPress={() => router.push('/app-lock' as any)}
+                />
 
                 <View className="h-20" />
             </ScrollView>

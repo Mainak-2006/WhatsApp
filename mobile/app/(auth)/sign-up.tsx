@@ -1,4 +1,4 @@
-    import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator, Alert } from 'react-native';
 import { useSignUp } from '@clerk/clerk-expo';
 import { useRouter, Link } from 'expo-router';
@@ -13,23 +13,33 @@ export default function SignUp() {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [emailAddress, setEmailAddress] = useState('');
+    const [countryCode, setCountryCode] = useState('+91');
+    const [phoneNumber, setPhoneNumber] = useState('');
     const [password, setPassword] = useState('');
     const [pendingVerification, setPendingVerification] = useState(false);
     const [code, setCode] = useState('');
     const [loading, setLoading] = useState(false);
+
+    // Email is now required for verification
+    const isFormValid = firstName.trim() !== '' && lastName.trim() !== '' && countryCode.trim() !== '' && phoneNumber.trim() !== '' && password.trim() !== '' && emailAddress.trim() !== '';
 
     const onSignUpPress = async () => {
         if (!isLoaded) return;
         setLoading(true);
 
         try {
-            await signUp.create({
+            const signUpParams: any = {
                 firstName,
                 lastName,
                 emailAddress,
                 password,
-            });
+                // Store phone number in metadata to avoid "unsupported country code" error
+                unsafeMetadata: {
+                    phoneNumber: `${countryCode}${phoneNumber}`,
+                }
+            };
 
+            await signUp.create(signUpParams);
             await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
             setPendingVerification(true);
         } catch (err: any) {
@@ -49,8 +59,13 @@ export default function SignUp() {
                 code,
             });
 
-            await setActive({ session: completeSignUp.createdSessionId });
-            router.replace('/(tabs)' as any);
+            if (completeSignUp.status === 'complete') {
+                await setActive({ session: completeSignUp.createdSessionId });
+                router.replace('/(tabs)' as any);
+            } else {
+                console.error(JSON.stringify(completeSignUp, null, 2));
+                Alert.alert('Status', 'Sign up incomplete, please check your information');
+            }
         } catch (err: any) {
             console.error(JSON.stringify(err, null, 2));
             Alert.alert('Error', err.errors ? err.errors[0].message : 'Invalid verification code');
@@ -61,35 +76,37 @@ export default function SignUp() {
 
     if (pendingVerification) {
         return (
-            <View style={[styles.container, { backgroundColor: colors.background, padding: 24, justifyContent: 'center' }]}>
-                <View style={styles.header}>
-                    <Text style={[styles.title, { color: colors.text }]}>Verify Email</Text>
-                    <Text style={[styles.subtitle, { color: colors.secondaryText }]}>
+            <View className="flex-1 p-6 justify-center" style={{ backgroundColor: colors.background }}>
+                <View className="items-center mb-10">
+                    <Text className="text-3xl font-bold mb-2" style={{ color: colors.text }}>Verify Email</Text>
+                    <Text className="text-base text-center" style={{ color: colors.secondaryText }}>
                         We've sent a verification code to {emailAddress}
                     </Text>
                 </View>
 
-                <View style={styles.form}>
-                    <View style={[styles.inputWrapper, { borderColor: colors.border }]}>
+                <View className="gap-4">
+                    <View className="flex-row items-center border rounded-xl px-4 h-14" style={{ borderColor: colors.border }}>
                         <TextInput
                             value={code}
                             placeholder="Verification Code"
                             placeholderTextColor={colors.secondaryText}
                             onChangeText={(code) => setCode(code)}
-                            style={[styles.input, { color: colors.text, textAlign: 'center', fontSize: 24, letterSpacing: 8 }]}
+                            className="flex-1 text-center text-2xl tracking-[8px]"
+                            style={{ color: colors.text }}
                             keyboardType="number-pad"
                         />
                     </View>
 
                     <TouchableOpacity
-                        style={[styles.button, { backgroundColor: '#25D366' }]}
+                        className="h-14 rounded-xl justify-center items-center mt-2 elevation-5"
+                        style={{ backgroundColor: '#25D366', shadowColor: "#25D366", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 }}
                         onPress={onPressVerify}
                         disabled={loading}
                     >
                         {loading ? (
                             <ActivityIndicator color="white" />
                         ) : (
-                            <Text style={styles.buttonText}>Verify Email</Text>
+                            <Text className="text-white text-lg font-bold">Verify Email</Text>
                         )}
                     </TouchableOpacity>
                 </View>
@@ -100,94 +117,140 @@ export default function SignUp() {
     return (
         <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={[styles.container, { backgroundColor: colors.background }]}
+            className="flex-1"
+            style={{ backgroundColor: colors.background }}
         >
-            <View style={styles.content}>
-                <View style={styles.header}>
-                    <View style={[styles.logoContainer, { backgroundColor: '#25D366' }]}>
+            <View className="flex-1 p-6 justify-center">
+                <View className="items-center mb-10">
+                    <View
+                        className="w-20 h-20 rounded-2xl justify-center items-center mb-5 elevation-8"
+                        style={{ backgroundColor: '#25D366', shadowColor: "#000", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10 }}
+                    >
                         <Ionicons name="chatbubbles" size={40} color="white" />
                     </View>
-                    <Text style={[styles.title, { color: colors.text }]}>Create Account</Text>
-                    <Text style={[styles.subtitle, { color: colors.secondaryText }]}>
+                    <Text className="text-3xl font-bold mb-2" style={{ color: colors.text }}>Create Account</Text>
+                    <Text className="text-base text-center" style={{ color: colors.secondaryText }}>
                         Join the community and start chatting
                     </Text>
                 </View>
 
-                <View style={styles.form}>
-                    <View style={{ flexDirection: 'row', gap: 12 }}>
-                        <View style={[styles.inputContainer, { flex: 1 }]}>
-                            <Text style={[styles.label, { color: colors.secondaryText }]}>First Name</Text>
-                            <View style={[styles.inputWrapper, { borderColor: colors.border }]}>
+                <View className="gap-4">
+                    <View className="flex-row gap-3">
+                        <View className="flex-1 gap-2">
+                            <Text className="text-sm font-semibold ml-1" style={{ color: colors.secondaryText }}>First Name</Text>
+                            <View className="flex-row items-center border rounded-xl px-4 h-14" style={{ borderColor: colors.border }}>
                                 <TextInput
                                     value={firstName}
                                     placeholder="John"
                                     placeholderTextColor={colors.secondaryText}
                                     onChangeText={(val) => setFirstName(val)}
-                                    style={[styles.input, { color: colors.text }]}
+                                    className="flex-1 text-base"
+                                    style={{ color: colors.text }}
                                 />
                             </View>
                         </View>
-                        <View style={[styles.inputContainer, { flex: 1 }]}>
-                            <Text style={[styles.label, { color: colors.secondaryText }]}>Last Name</Text>
-                            <View style={[styles.inputWrapper, { borderColor: colors.border }]}>
+                        <View className="flex-1 gap-2">
+                            <Text className="text-sm font-semibold ml-1" style={{ color: colors.secondaryText }}>Last Name</Text>
+                            <View className="flex-row items-center border rounded-xl px-4 h-14" style={{ borderColor: colors.border }}>
                                 <TextInput
                                     value={lastName}
                                     placeholder="Doe"
                                     placeholderTextColor={colors.secondaryText}
                                     onChangeText={(val) => setLastName(val)}
-                                    style={[styles.input, { color: colors.text }]}
+                                    className="flex-1 text-base"
+                                    style={{ color: colors.text }}
                                 />
                             </View>
                         </View>
                     </View>
 
-                    <View style={styles.inputContainer}>
-                        <Text style={[styles.label, { color: colors.secondaryText }]}>Email Address</Text>
-                        <View style={[styles.inputWrapper, { borderColor: colors.border }]}>
-                            <Ionicons name="mail-outline" size={20} color={colors.secondaryText} style={styles.inputIcon} />
+                    <View className="gap-2">
+                        <Text className="text-sm font-semibold ml-1" style={{ color: colors.secondaryText }}>Phone Number</Text>
+                        <View className="flex-row gap-3">
+                            <View className="w-24 flex-row items-center border rounded-xl px-4 h-14" style={{ borderColor: colors.border }}>
+                                <TextInput
+                                    value={countryCode}
+                                    placeholder="+91"
+                                    placeholderTextColor={colors.secondaryText}
+                                    onChangeText={setCountryCode}
+                                    className="flex-1 text-base text-center"
+                                    style={{ color: colors.text }}
+                                    keyboardType="phone-pad"
+                                />
+                            </View>
+                            <View className="flex-1 flex-row items-center border rounded-xl px-4 h-14" style={{ borderColor: colors.border }}>
+                                <Ionicons name="call-outline" size={20} color={colors.secondaryText} className="mr-3" />
+                                <TextInput
+                                    value={phoneNumber}
+                                    placeholder="1234567890"
+                                    placeholderTextColor={colors.secondaryText}
+                                    onChangeText={setPhoneNumber}
+                                    className="flex-1 text-base"
+                                    style={{ color: colors.text }}
+                                    keyboardType="phone-pad"
+                                />
+                            </View>
+                        </View>
+                    </View>
+
+                    <View className="gap-2">
+                        <Text className="text-sm font-semibold ml-1" style={{ color: colors.secondaryText }}>Email Address</Text>
+                        <View className="flex-row items-center border rounded-xl px-4 h-14" style={{ borderColor: colors.border }}>
+                            <Ionicons name="mail-outline" size={20} color={colors.secondaryText} className="mr-3" />
                             <TextInput
                                 autoCapitalize="none"
                                 value={emailAddress}
                                 placeholder="email@example.com"
                                 placeholderTextColor={colors.secondaryText}
-                                onChangeText={(emailAddress) => setEmailAddress(emailAddress)}
-                                style={[styles.input, { color: colors.text }]}
+                                onChangeText={(val) => setEmailAddress(val)}
+                                className="flex-1 text-base"
+                                style={{ color: colors.text }}
+                                keyboardType="email-address"
                             />
                         </View>
                     </View>
 
-                    <View style={styles.inputContainer}>
-                        <Text style={[styles.label, { color: colors.secondaryText }]}>Password</Text>
-                        <View style={[styles.inputWrapper, { borderColor: colors.border }]}>
-                            <Ionicons name="lock-closed-outline" size={20} color={colors.secondaryText} style={styles.inputIcon} />
+                    <View className="gap-2">
+                        <Text className="text-sm font-semibold ml-1" style={{ color: colors.secondaryText }}>Password</Text>
+                        <View className="flex-row items-center border rounded-xl px-4 h-14" style={{ borderColor: colors.border }}>
+                            <Ionicons name="lock-closed-outline" size={20} color={colors.secondaryText} className="mr-3" />
                             <TextInput
                                 value={password}
                                 placeholder="Choose a password"
                                 placeholderTextColor={colors.secondaryText}
                                 secureTextEntry
                                 onChangeText={(password) => setPassword(password)}
-                                style={[styles.input, { color: colors.text }]}
+                                className="flex-1 text-base"
+                                style={{ color: colors.text }}
                             />
                         </View>
                     </View>
 
                     <TouchableOpacity
-                        style={[styles.button, { backgroundColor: '#25D366' }]}
+                        className="h-14 rounded-xl justify-center items-center mt-2 elevation-5"
+                        style={{
+                            backgroundColor: isFormValid ? '#25D366' : '#A0A0A0',
+                            shadowColor: isFormValid ? "#25D366" : "transparent",
+                            shadowOffset: { width: 0, height: 4 },
+                            shadowOpacity: 0.2,
+                            shadowRadius: 8,
+                            opacity: isFormValid ? 1 : 0.7
+                        }}
                         onPress={onSignUpPress}
-                        disabled={loading}
+                        disabled={loading || !isFormValid}
                     >
                         {loading ? (
                             <ActivityIndicator color="white" />
                         ) : (
-                            <Text style={styles.buttonText}>Sign Up</Text>
+                            <Text className="text-white text-lg font-bold">Sign Up</Text>
                         )}
                     </TouchableOpacity>
 
-                    <View style={styles.footer}>
-                        <Text style={[styles.footerText, { color: colors.secondaryText }]}>Already have an account? </Text>
+                    <View className="flex-row justify-center mt-5">
+                        <Text className="text-sm" style={{ color: colors.secondaryText }}>Already have an account? </Text>
                         <Link href={"/(auth)/sign-in" as any} asChild>
                             <TouchableOpacity>
-                                <Text style={[styles.linkText, { color: '#25D366' }]}>Sign In</Text>
+                                <Text className="text-sm font-bold" style={{ color: '#25D366' }}>Sign In</Text>
                             </TouchableOpacity>
                         </Link>
                     </View>
@@ -196,101 +259,3 @@ export default function SignUp() {
         </KeyboardAvoidingView>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    content: {
-        flex: 1,
-        padding: 24,
-        justifyContent: 'center',
-    },
-    header: {
-        alignItems: 'center',
-        marginBottom: 40,
-    },
-    logoContainer: {
-        width: 80,
-        height: 80,
-        borderRadius: 20,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 20,
-        shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 4,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 8,
-    },
-    title: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        marginBottom: 8,
-    },
-    subtitle: {
-        fontSize: 16,
-        textAlign: 'center',
-    },
-    form: {
-        gap: 16,
-    },
-    inputContainer: {
-        gap: 8,
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: '600',
-        marginLeft: 4,
-    },
-    inputWrapper: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderRadius: 12,
-        paddingHorizontal: 16,
-        height: 56,
-    },
-    inputIcon: {
-        marginRight: 12,
-    },
-    input: {
-        flex: 1,
-        fontSize: 16,
-    },
-    button: {
-        height: 56,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 10,
-        shadowColor: "#25D366",
-        shadowOffset: {
-            width: 0,
-            height: 4,
-        },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 5,
-    },
-    buttonText: {
-        color: 'white',
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    footer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        marginTop: 20,
-    },
-    footerText: {
-        fontSize: 14,
-    },
-    linkText: {
-        fontSize: 14,
-        fontWeight: 'bold',
-    },
-});

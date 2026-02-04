@@ -15,7 +15,9 @@ const ProfileDetail = () => {
     const colors = useThemeColors();
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
-    const [isBlocked, setIsBlocked] = useState(blockedIds.includes(id));
+    const [isBlocked, setIsBlocked] = useState(
+        blockedIds.includes(id as any) || blockedIds.includes(id?.toString())
+    );
 
     const handleImagePress = (uri: string) => {
         setSelectedImage(uri);
@@ -23,9 +25,10 @@ const ProfileDetail = () => {
     };
 
     const handleBlock = () => {
+        const userId = id?.toString();
         if (isBlocked) {
             setIsBlocked(false);
-            const index = blockedIds.indexOf(id);
+            const index = blockedIds.findIndex(bid => bid === userId || bid === id);
             if (index > -1) blockedIds.splice(index, 1);
             Alert.alert('Unblocked', `${user.name} has been unblocked.`);
             DeviceEventEmitter.emit('userUnblocked', user.id);
@@ -40,7 +43,9 @@ const ProfileDetail = () => {
                         style: 'destructive',
                         onPress: () => {
                             setIsBlocked(true);
-                            if (!blockedIds.includes(id)) blockedIds.push(id);
+                            if (!blockedIds.includes(userId) && !blockedIds.includes(id as any)) {
+                                blockedIds.push(userId);
+                            }
                             Alert.alert('Blocked', `${user.name} has been blocked.`);
                             DeviceEventEmitter.emit('userBlocked', user.id);
                         }
