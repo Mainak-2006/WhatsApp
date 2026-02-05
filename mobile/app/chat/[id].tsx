@@ -1,7 +1,7 @@
-import { View, Text, Image, TouchableOpacity, TextInput } from 'react-native'
-import React from 'react'
+import { View, Text, Image, TouchableOpacity, TextInput, Modal, Alert, DeviceEventEmitter } from 'react-native'
+import React, { useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { chat } from '../../data/DemoChat'
+import { chat, blockedIds, reportedIds } from '../../data/DemoChat'
 import { useThemeColors } from '../../hooks/useThemeColors'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -11,8 +11,82 @@ const ChatScreen = () => {
   const router = useRouter()
   const colors = useThemeColors()
   const insets = useSafeAreaInsets()
+  const [menuVisible, setMenuVisible] = useState(false)
 
   const contact = chat.find(c => c.id.toString() === id)
+
+  const handleReport = () => {
+    setMenuVisible(false)
+    Alert.alert(
+      `Report ${contact?.name}?`,
+      'The last 5 messages from this contact will be forwarded to WhatsApp. This contact will not be notified.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Report',
+          style: 'destructive',
+          onPress: () => {
+            const userId = id?.toString()
+            if (!reportedIds.includes(userId) && !reportedIds.includes(id as any)) {
+              reportedIds.push(userId)
+            }
+            Alert.alert('Reported', 'Thank you for your report. We will review it shortly.')
+            // Optionally block after reporting
+            Alert.alert(
+              'Block contact?',
+              'Do you also want to block this contact and delete this chat\'s messages?',
+              [
+                { text: 'No', style: 'cancel' },
+                {
+                  text: 'Block',
+                  style: 'destructive',
+                  onPress: () => {
+                    if (!blockedIds.includes(userId) && !blockedIds.includes(id as any)) {
+                      blockedIds.push(userId)
+                    }
+                    DeviceEventEmitter.emit('userBlocked', contact?.id)
+                    Alert.alert('Blocked', `${contact?.name} has been blocked.`)
+                  }
+                }
+              ]
+            )
+          }
+        }
+      ]
+    )
+  }
+
+  const handleBlock = () => {
+    setMenuVisible(false)
+    const userId = id?.toString()
+    const isBlocked = blockedIds.includes(userId) || blockedIds.includes(id as any)
+
+    if (isBlocked) {
+      const index = blockedIds.findIndex(bid => bid === userId || bid === id)
+      if (index > -1) blockedIds.splice(index, 1)
+      DeviceEventEmitter.emit('userUnblocked', contact?.id)
+      Alert.alert('Unblocked', `${contact?.name} has been unblocked.`)
+    } else {
+      Alert.alert(
+        `Block ${contact?.name}?`,
+        'Blocked contacts will no longer be able to call you or send you messages.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Block',
+            style: 'destructive',
+            onPress: () => {
+              if (!blockedIds.includes(userId) && !blockedIds.includes(id as any)) {
+                blockedIds.push(userId)
+              }
+              DeviceEventEmitter.emit('userBlocked', contact?.id)
+              Alert.alert('Blocked', `${contact?.name} has been blocked.`)
+            }
+          }
+        ]
+      )
+    }
+  }
 
   if (!contact) {
     return (
@@ -51,7 +125,7 @@ const ChatScreen = () => {
           <TouchableOpacity>
             <Ionicons name="call" size={20} color={colors.text} />
           </TouchableOpacity>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => setMenuVisible(true)}>
             <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
           </TouchableOpacity>
         </View>
@@ -110,6 +184,53 @@ const ChatScreen = () => {
           <MaterialCommunityIcons name="microphone" size={24} color="white" />
         </TouchableOpacity>
       </View>
+
+      {/* Menu Modal */}
+      <Modal
+        visible={menuVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setMenuVisible(false)}
+      >
+        <TouchableOpacity
+          className="flex-1 bg-black/50"
+          activeOpacity={1}
+          onPress={() => setMenuVisible(false)}
+        >
+          <View className="absolute top-16 right-4 rounded-lg overflow-hidden shadow-lg" style={{ backgroundColor: colors.background, minWidth: 200 }}>
+            <TouchableOpacity
+              className="flex-row items-center px-4 py-3 border-b"
+              style={{ borderBottomColor: colors.border }}
+              onPress={() => {
+                setMenuVisible(false)
+                router.push({ pathname: '/profile/[id]', params: { id: contact.id.toString() } })
+              }}
+            >
+              <Ionicons name="person-circle-outline" size={20} color={colors.text} />
+              <Text style={{ color: colors.text }} className="ml-3 text-base">View contact</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="flex-row items-center px-4 py-3 border-b"
+              style={{ borderBottomColor: colors.border }}
+              onPress={handleBlock}
+            >
+              <MaterialCommunityIcons name="block-helper" size={20} color="#ff3b30" />
+              <Text style={{ color: '#ff3b30' }} className="ml-3 text-base">
+                {blockedIds.includes(id?.toString()) || blockedIds.includes(id as any) ? 'Unblock' : 'Block'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="flex-row items-center px-4 py-3"
+              onPress={handleReport}
+            >
+              <MaterialCommunityIcons name="thumb-down" size={20} color="#ff3b30" />
+              <Text style={{ color: '#ff3b30' }} className="ml-3 text-base">Report contact</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   )
 }
