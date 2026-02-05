@@ -935,3 +935,5 @@ export const groups = [
 ];
 
 export const blockedIds: any[] = [];
+
+export const reportedIds: any[] = [];

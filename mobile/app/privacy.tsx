@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, DeviceEventEmitter } from 're
 import { Stack, useRouter } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useThemeColors } from '../hooks/useThemeColors';
-import { blockedIds } from '../data/DemoChat';
+import { blockedIds, reportedIds } from '../data/DemoChat';
 
 const PrivacyItem = ({ title, value, description, onPress, icon }: any) => {
     const colors = useThemeColors();
@@ -33,6 +33,7 @@ export default function PrivacyScreen() {
     const router = useRouter();
     const [lockEnabled, setLockEnabled] = React.useState(false);
     const [blockedCount, setBlockedCount] = React.useState(blockedIds.length);
+    const [reportedCount, setReportedCount] = React.useState(reportedIds.length);
 
     React.useEffect(() => {
         const checkLockStatus = async () => {
@@ -110,6 +111,12 @@ export default function PrivacyScreen() {
                     title="Blocked contacts"
                     value={blockedCount > 0 ? `${blockedCount}` : "None"}
                     onPress={() => router.push('/blocked-contacts' as any)}
+                />
+                <PrivacyItem
+                    title="Reported contacts"
+                    value={reportedCount > 0 ? `${reportedCount}` : "None"}
+                    description="Contacts you've reported to WhatsApp"
+                    onPress={() => router.push('/reported-contacts' as any)}
                 />
                 <PrivacyItem
                     title="App lock"

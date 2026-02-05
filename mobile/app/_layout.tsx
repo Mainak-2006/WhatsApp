@@ -66,6 +66,7 @@ function InitialLayout() {
       <Stack.Screen name="app-lock" options={{ headerShown: false }} />
       <Stack.Screen name="blocked-contacts" options={{ headerShown: false }} />
       <Stack.Screen name="select-contact" options={{ headerShown: false }} />
+      <Stack.Screen name="reported-contacts" options={{ headerShown: false }} />
     </Stack>
   );
 }
