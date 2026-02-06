@@ -18,6 +18,7 @@ const DropDownMenu: React.FC<DropDownMenuProps> = ({ visible, onClose, onReadAll
 
     const menuItems = [
         { label: "New group", onPress: () => { router.push('/new-group' as any) } },
+        { label: "Status privacy", onPress: () => { router.push('/status-privacy' as any) } },
         { label: "Linked devices", onPress: () => { } },
         { label: "Starred", onPress: () => { } },
         { label: "Read all", onPress: () => { onReadAll(); } },

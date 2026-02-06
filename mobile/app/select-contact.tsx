@@ -12,8 +12,11 @@ const SelectContact = () => {
     const insets = useSafeAreaInsets();
     const { mode } = useLocalSearchParams();
     const isBlockMode = mode === 'block';
+    const isStatusMode = mode === 'status-except' || mode === 'status-only';
+
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearching, setIsSearching] = useState(false);
+    const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
 
     const filteredContacts = useMemo(() => {
         const query = searchQuery.toLowerCase();
@@ -77,14 +80,27 @@ const SelectContact = () => {
                         </TouchableOpacity>
                         <View>
                             <Text style={{ color: colors.text }} className="text-xl font-bold">
-                                {isBlockMode ? 'Select contact to block' : 'Select contact'}
+                                {isBlockMode ? 'Select contact to block' :
+                                    mode === 'status-except' ? 'Hide status from...' :
+                                        mode === 'status-only' ? 'Only share with...' :
+                                            'Select contact'}
                             </Text>
                             <Text style={{ color: colors.secondaryText }} className="text-xs">
-                                {chat.length} contacts
+                                {isStatusMode && selectedContacts.length > 0 ?
+                                    `${selectedContacts.length} selected` :
+                                    `${chat.length} contacts`}
                             </Text>
                         </View>
                     </View>
                     <View className="flex-row items-center gap-4">
+                        {isStatusMode && selectedContacts.length > 0 && (
+                            <TouchableOpacity
+                                onPress={() => router.back()}
+                                className="bg-[#00A884] px-4 py-1.5 rounded-full"
+                            >
+                                <Text className="text-white font-bold">Done</Text>
+                            </TouchableOpacity>
+                        )}
                         <TouchableOpacity onPress={() => setIsSearching(true)}>
                             <Ionicons name="search" size={24} color={colors.text} />
                         </TouchableOpacity>
@@ -98,7 +114,7 @@ const SelectContact = () => {
     );
 
     const renderListHeader = () => {
-        if (isSearching || isBlockMode) return null;
+        if (isSearching || isBlockMode || isStatusMode) return null;
 
         const options = [
             {
@@ -149,6 +165,16 @@ const SelectContact = () => {
     };
 
     const handleContactPress = (contact: any) => {
+        if (isStatusMode) {
+            const contactId = contact.id.toString();
+            setSelectedContacts(prev =>
+                prev.includes(contactId)
+                    ? prev.filter(id => id !== contactId)
+                    : [...prev, contactId]
+            );
+            return;
+        }
+
         if (isBlockMode) {
             // Check if already blocked
             if (blockedIds.includes(contact.id.toString()) || blockedIds.includes(contact.id)) {
@@ -182,21 +208,34 @@ const SelectContact = () => {
         }
     };
 
-    const renderContact = ({ item }: { item: any }) => (
-        <TouchableOpacity
-            activeOpacity={0.7}
-            className="flex-row items-center px-4 py-3"
-            onPress={() => handleContactPress(item)}
-        >
-            <Image source={{ uri: item.image }} className="w-12 h-12 rounded-full" />
-            <View className="ml-4 flex-1">
-                <Text style={{ color: colors.text }} className="text-lg font-bold">{item.name}</Text>
-                <Text style={{ color: colors.secondaryText }} className="text-sm" numberOfLines={1}>
-                    {item.about}
-                </Text>
-            </View>
-        </TouchableOpacity>
-    );
+    const renderContact = ({ item }: { item: any }) => {
+        const isSelected = selectedContacts.includes(item.id.toString());
+
+        return (
+            <TouchableOpacity
+                activeOpacity={0.7}
+                className="flex-row items-center px-4 py-3"
+                onPress={() => handleContactPress(item)}
+            >
+                <View className="relative">
+                    <Image source={{ uri: item.image }} className="w-12 h-12 rounded-full" />
+                    {isStatusMode && isSelected && (
+                        <View className="absolute bottom-0 right-0 bg-[#00A884] rounded-full border-2 border-white dark:border-[#0B141A] p-0.5">
+                            <Ionicons name="checkmark" size={12} color="white" />
+                        </View>
+                    )}
+                </View>
+                <View className="ml-4 flex-1">
+                    <Text style={{ color: colors.text }} className={`text-lg ${isSelected ? 'font-bold' : 'font-semibold'}`}>
+                        {item.name}
+                    </Text>
+                    <Text style={{ color: colors.secondaryText }} className="text-sm" numberOfLines={1}>
+                        {item.about}
+                    </Text>
+                </View>
+            </TouchableOpacity>
+        );
+    };
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background, paddingTop: insets.top }}>

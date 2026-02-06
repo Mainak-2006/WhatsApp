@@ -6,6 +6,8 @@ export interface ColorScheme {
     tabBarBackground: string;
     primary: string;
     chatBackground: string;
+    surface: string;
+    card: string;
 }
 
 export interface ColorsType {
