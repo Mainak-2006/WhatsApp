@@ -67,6 +67,9 @@ function InitialLayout() {
       <Stack.Screen name="blocked-contacts" options={{ headerShown: false }} />
       <Stack.Screen name="select-contact" options={{ headerShown: false }} />
       <Stack.Screen name="reported-contacts" options={{ headerShown: false }} />
+      <Stack.Screen name="status-privacy" options={{ headerShown: false }} />
+      <Stack.Screen name="status-viewer/[id]" options={{ headerShown: false }} />
+      <Stack.Screen name="create-status" options={{ headerShown: false }} />
     </Stack>
   );
 }

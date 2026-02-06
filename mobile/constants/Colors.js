@@ -8,6 +8,7 @@ const Colors = {
         primary: '#00b436ff',
         chatBackground: '#EFE7DE',
         surface: '#FFFFFF',
+        card: '#F0F2F5',
     },
     dark: {
         background: '#0B141A',
@@ -18,6 +19,7 @@ const Colors = {
         primary: '#ffffffff',
         chatBackground: '#0B141A',
         surface: '#202C33',
+        card: '#1F2C34',
     },
 };
 module.exports = Colors;
