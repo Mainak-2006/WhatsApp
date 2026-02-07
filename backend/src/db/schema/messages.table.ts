@@ -5,7 +5,7 @@ import { conversations } from './conversations.table';
 export const messages = pgTable('messages', {
     id: uuid('id').primaryKey().defaultRandom(),
     conversationId: uuid('conversation_id').references(() => conversations.id).notNull(),
-    senderId: uuid('sender_id').references(() => users.id).notNull(),
+    senderId: text('sender_id').references(() => users.id).notNull(),
     content: text('content'),
     messageType: varchar('message_type', { length: 20 }).default('text').notNull(),
     mediaUrl: text('media_url'),

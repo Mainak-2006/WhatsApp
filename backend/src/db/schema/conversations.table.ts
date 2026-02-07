@@ -7,7 +7,7 @@ export const conversations = pgTable('conversations', {
     isGroup: boolean('is_group').default(false).notNull(),
     avatarUrl: text('avatar_url'),
     description: text('description'),
-    createdBy: uuid('created_by').references(() => users.id),
+    createdBy: text('created_by').references(() => users.id),
     lastMessageId: uuid('last_message_id'),
     lastMessageAt: timestamp('last_message_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),

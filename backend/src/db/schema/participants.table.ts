@@ -1,11 +1,11 @@
-import { pgTable, uuid, timestamp, varchar, boolean, primaryKey } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, timestamp, varchar, boolean, primaryKey, text } from 'drizzle-orm/pg-core';
 import { users } from './users.table';
 import { conversations } from './conversations.table';
 
 export const participants = pgTable('participants', {
     id: uuid('id').primaryKey().defaultRandom(),
     conversationId: uuid('conversation_id').references(() => conversations.id).notNull(),
-    userId: uuid('user_id').references(() => users.id).notNull(),
+    userId: text('user_id').references(() => users.id).notNull(),
     role: varchar('role', { length: 20 }).default('member').notNull(),
     nickname: varchar('nickname', { length: 100 }),
     isMuted: boolean('is_muted').default(false),

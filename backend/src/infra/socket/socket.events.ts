@@ -9,7 +9,13 @@ export function registerSocketEvents(io: Server, socket: Socket): void {
     const userId = socket.userId!;
 
     // Set user online when connected
-    presenceService.setOnline(userId, socket.id);
+    try {
+        presenceService.setOnline(userId, socket.id).catch(err => {
+            console.error(`Failed to set user ${userId} online:`, err.message);
+        });
+    } catch (error) {
+        console.error(`Error in registerSocketEvents for user ${userId}:`, error);
+    }
 
     // Join conversation rooms
     socket.on('join:conversation', (conversationId: string) => {

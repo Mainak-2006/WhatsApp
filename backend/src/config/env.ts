@@ -9,13 +9,13 @@ const envSchema = z.object({
     DATABASE_URL: z.string(),
     JWT_SECRET: z.string(),
     JWT_EXPIRES_IN: z.string().default('7d'),
-    CLOUDINARY_URL:z.string(),
+    CLOUDINARY_URL: z.string(),
     CLOUDINARY_CLOUD_NAME: z.string().optional(),
     CLOUDINARY_API_KEY: z.string().optional(),
     CLOUDINARY_API_SECRET: z.string().optional(),
 });
 
-const parsed = envSchema.safeParse(process.env);    
+const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
     console.error('❌ Invalid environment variables:', parsed.error.flatten().fieldErrors);
